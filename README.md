@@ -1,1 +1,2 @@
-Solving Leetcode problems using VS Code to learn version control and Data Structures (WIP)
+- Solving Leetcode problems using VS Code to learn version control and Data Structures (WIP)
+- Also CodePath exercises are included
