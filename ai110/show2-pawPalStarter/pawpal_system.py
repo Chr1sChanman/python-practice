@@ -12,6 +12,7 @@ class Task:
         priority: str,
         category: str = "",
     ) -> None:
+        """Initialize a Task with a title, duration, priority level, and optional category."""
         self.title = title
         self.duration_minutes = duration_minutes
         self.priority = priority  # "low" | "medium" | "high"
@@ -19,29 +20,36 @@ class Task:
         self.completed = False
 
     def is_high_priority(self) -> bool:
+        """Return True if this task's priority is 'high'."""
         return self.priority == "high"
 
     def mark_complete(self) -> None:
+        """Mark this task as completed."""
         self.completed = True
 
     def __repr__(self) -> str:
+        """Return a concise string representation of this Task."""
         return f"Task({self.title!r}, {self.duration_minutes}min, {self.priority})"
 
 
 class Pet:
     def __init__(self, name: str, species: str, age: int) -> None:
+        """Initialize a Pet with a name, species, and age."""
         self.name = name
         self.species = species
         self.age = age
         self.tasks: list[Task] = []
 
     def add_task(self, task: Task) -> None:
+        """Append a Task to this pet's task list."""
         self.tasks.append(task)
 
     def remove_task(self, title: str) -> None:
+        """Remove all tasks whose title matches the given string."""
         self.tasks = [t for t in self.tasks if t.title != title]
 
     def get_tasks_by_priority(self, priority: str) -> list[Task]:
+        """Return all tasks for this pet that match the given priority level."""
         return [t for t in self.tasks if t.priority == priority]
 
 
@@ -52,15 +60,18 @@ class Owner:
         available_minutes: int,
         preferences: list[str] | None = None,
     ) -> None:
+        """Initialize an Owner with a name, time budget, and optional care preferences."""
         self.name = name
         self.available_minutes = available_minutes
         self.preferences: list[str] = preferences or []
         self.pets: list[Pet] = []
 
     def add_pet(self, pet: Pet) -> None:
+        """Add a Pet to this owner's list of pets."""
         self.pets.append(pet)
 
     def set_available_time(self, minutes: int) -> None:
+        """Update the owner's available time budget in minutes."""
         self.available_minutes = minutes
 
     def get_all_tasks(self) -> list[Task]:
@@ -70,6 +81,7 @@ class Owner:
 
 class Scheduler:
     def __init__(self, owner: Owner) -> None:
+        """Initialize the Scheduler with an Owner whose pets and tasks will be scheduled."""
         self.owner = owner
         self.scheduled_tasks: list[Task] = []
 
@@ -131,7 +143,9 @@ class Scheduler:
         return "\n".join([header, *lines, footer])
 
     def total_duration(self) -> int:
+        """Return the total duration in minutes of all scheduled tasks."""
         return sum(t.duration_minutes for t in self.scheduled_tasks)
 
     def fits_within_time(self, tasks: list[Task]) -> bool:
+        """Return True if the combined duration of the given tasks fits within the owner's time budget."""
         return sum(t.duration_minutes for t in tasks) <= self.owner.available_minutes
