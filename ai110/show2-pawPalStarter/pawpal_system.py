@@ -1,7 +1,9 @@
 from __future__ import annotations
+from datetime import date, timedelta
 
 PRIORITY_WEIGHT = {"high": 3, "medium": 2, "low": 1}
 PREFERENCE_BONUS = 2
+FREQUENCY_WEIGHT = {"daily": 3, "weekly": 2, "once": 0}
 
 
 class Task:
@@ -11,21 +13,35 @@ class Task:
         duration_minutes: int,
         priority: str,
         category: str = "",
+        frequency: str = "once",
+        start_time: str = "",
+        due_date: date | None = None,
     ) -> None:
-        """Initialize a Task with a title, duration, priority level, and optional category."""
+        """Initialize a Task with a title, duration, priority level, optional category, and frequency."""
         self.title = title
         self.duration_minutes = duration_minutes
         self.priority = priority  # "low" | "medium" | "high"
         self.category = category
+        self.frequency = frequency  # "daily" | "weekly" | "once"
+        self.start_time = start_time  # optional "HH:MM" string for explicit scheduling
+        self.due_date = due_date       # next occurrence date for recurring tasks
         self.completed = False
 
     def is_high_priority(self) -> bool:
         """Return True if this task's priority is 'high'."""
         return self.priority == "high"
 
-    def mark_complete(self) -> None:
-        """Mark this task as completed."""
+    def mark_complete(self) -> Task | None:
+        """Mark this task as completed. For recurring tasks, returns a new Task
+        for the next occurrence using timedelta; returns None for one-off tasks."""
         self.completed = True
+        if self.frequency == "daily":
+            next_due = (self.due_date or date.today()) + timedelta(days=1)
+            return Task(self.title, self.duration_minutes, self.priority, self.category, self.frequency, due_date=next_due)
+        if self.frequency == "weekly":
+            next_due = (self.due_date or date.today()) + timedelta(days=7)
+            return Task(self.title, self.duration_minutes, self.priority, self.category, self.frequency, due_date=next_due)
+        return None
 
     def __repr__(self) -> str:
         """Return a concise string representation of this Task."""
@@ -88,11 +104,55 @@ class Scheduler:
     # --- scoring --------------------------------------------------------
 
     def _score(self, task: Task) -> int:
-        """Higher score = scheduled first. Priority weight + bonus when the
-        task's category matches one of the owner's preferences."""
+        """Higher score = scheduled first. Priority weight + preference bonus
+        + frequency weight (daily tasks score higher than weekly or one-off)."""
         base = PRIORITY_WEIGHT.get(task.priority, 0)
         bonus = PREFERENCE_BONUS if task.category in self.owner.preferences else 0
-        return base + bonus
+        freq = FREQUENCY_WEIGHT.get(task.frequency, 0)
+        return base + bonus + freq
+
+    # --- sorting --------------------------------------------------------
+
+    def sort_by_time(self, tasks: list[Task]) -> list[Task]:
+        """Return tasks sorted by their start_time string in ascending HH:MM order.
+        Tasks with no start_time set are placed at the end."""
+        return sorted(tasks, key=lambda t: (t.start_time == "", t.start_time))
+
+    # --- filtering ------------------------------------------------------
+
+    def filter_tasks(self, pet: Pet | None = None, completed: bool = False) -> list[Task]:
+        """Return tasks filtered by pet and/or completion status.
+        pet=None returns tasks across all pets. completed=False returns only incomplete tasks."""
+        tasks = pet.tasks if pet else self.owner.get_all_tasks()
+        return [t for t in tasks if t.completed == completed]
+
+    # --- recurring task completion -------------------------------------
+
+    def mark_task_complete(self, task: Task, pet: Pet) -> Task | None:
+        """Mark a task complete and, if it is recurring, automatically add the
+        next occurrence back to the pet's task list. Returns the new Task or None."""
+        next_task = task.mark_complete()
+        if next_task:
+            pet.add_task(next_task)
+        return next_task
+
+    # --- conflict detection --------------------------------------------
+
+    def detect_conflicts(self) -> list[str]:
+        """Check scheduled tasks for duplicate start_time values. Returns a list
+        of warning strings — one per conflict — rather than raising an exception."""
+        warnings: list[str] = []
+        seen: dict[str, str] = {}
+        for task in self.scheduled_tasks:
+            if not task.start_time:
+                continue
+            if task.start_time in seen:
+                warnings.append(
+                    f"Conflict at {task.start_time}: '{seen[task.start_time]}' and '{task.title}' overlap"
+                )
+            else:
+                seen[task.start_time] = task.title
+        return warnings
 
     # --- core scheduling ------------------------------------------------
 
@@ -100,7 +160,7 @@ class Scheduler:
         """Greedy scheduler: rank incomplete tasks by score (desc), then pack
         them into the owner's available time budget."""
         candidates = [t for t in self.owner.get_all_tasks() if not t.completed]
-        ranked = sorted(candidates, key=self._score, reverse=True)
+        ranked = sorted(candidates, key=lambda t: (self._score(t), t.duration_minutes), reverse=True)
 
         self.scheduled_tasks = []
         remaining = self.owner.available_minutes
@@ -129,6 +189,8 @@ class Scheduler:
             reason_parts: list[str] = [f"priority={task.priority} (weight {PRIORITY_WEIGHT.get(task.priority, 0)})"]
             if task.category and task.category in self.owner.preferences:
                 reason_parts.append(f"matches preference '{task.category}' (+{PREFERENCE_BONUS})")
+            if task.frequency != "once":
+                reason_parts.append(f"recurring {task.frequency} (+{FREQUENCY_WEIGHT.get(task.frequency, 0)})")
 
             lines.append(
                 f"  {start}–{elapsed} min | {task.title} "

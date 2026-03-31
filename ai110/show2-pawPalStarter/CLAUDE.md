@@ -27,16 +27,29 @@ PawPal+ is a Streamlit app that helps pet owners plan daily care tasks. The user
 
 ## Architecture
 
-The project follows a two-layer design:
+The project follows a three-layer design:
 
-- **`app.py`** — Streamlit frontend. Handles all UI: owner/pet inputs, task entry form, session state for the task list, and a "Generate schedule" button. The schedule generation is currently a stub (`st.warning("Not implemented yet")`).
+- **`pawpal_system.py`** — Backend scheduling logic. Contains `Owner`, `Pet`, `Task`, and `Scheduler`. `Scheduler` takes constraints (time available, priority, preferences) and returns an ordered daily plan with explanations.
 
-- **`pawpal_system.py`** (to be created) — Backend scheduling logic. The compiled `.pyc` in `__pycache__` indicates this module was planned. It should contain classes for `Owner`, `Pet`, `Task`, and a `Scheduler` that takes constraints (time available, priority, preferences) and returns an ordered daily plan with explanations.
+- **`main.py`** — Integration test script. Wires all backend classes together with realistic hardcoded data and prints the schedule to the terminal. Run with `python main.py`. Not a formal test suite — no assertions — but catches bugs that unit tests miss: classes working in isolation vs. working together end-to-end.
+
+- **`app.py`** — Streamlit frontend. Handles all UI: owner/pet inputs, task entry form, session state, and "Generate schedule" button. Imports from `pawpal_system` and calls `Scheduler` when the button is clicked.
+
+## Testing Layers
+
+| File | Type | What it checks |
+|---|---|---|
+| `test_pawpal.py` | Unit tests (pytest) | Individual methods in isolation |
+| `main.py` | Integration test (manual) | All classes wired together, realistic data |
+| `app.py` | Manual/UI test | Full user-facing experience in the browser |
+
+Workflow: verify backend with `pytest`, then `python main.py`, then `streamlit run app.py`.
 
 ## Key Implementation Notes
 
-- Task list is persisted via `st.session_state.tasks` (a list of dicts with keys `title`, `duration_min`, `priority`).
-- The `Generate schedule` button in `app.py` is the integration point — this is where `pawpal_system` logic gets called and results are rendered.
+- `Owner` and `Pet` are stored in `st.session_state` so they persist across Streamlit reruns.
+- `Task` objects are attached to `Pet` via `pet.add_task()` — not stored as plain dicts.
+- The `Generate schedule` button creates a `Scheduler(owner=st.session_state.owner)`, calls `build_schedule()`, and displays `explain_plan()`.
 - Species options: `dog`, `cat`, `other`.
 - Priority levels: `low`, `medium`, `high`.
 - Task duration range: 1–240 minutes.
