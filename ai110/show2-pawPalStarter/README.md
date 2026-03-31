@@ -12,19 +12,31 @@ A busy pet owner needs help staying consistent with pet care. They want an assis
 
 Your job is to design the system first (UML), then implement the logic in Python, then connect it to the Streamlit UI.
 
-## What you will build
+## What was built
 
-Your final app should:
+The finished app:
 
-- Let a user enter basic owner + pet info
-- Let a user add/edit tasks (duration + priority at minimum)
-- Generate a daily schedule/plan based on constraints and priorities
-- Display the plan clearly (and ideally explain the reasoning)
-- Include tests for the most important scheduling behaviors
+- Lets a user enter owner name, time budget, and care preferences
+- Supports multiple pets per owner (name, species, age)
+- Lets a user add tasks per pet with title, duration, priority, category, frequency (`once`/`daily`/`weekly`), and optional start time
+- Generates a daily schedule using a greedy scoring algorithm (priority weight + preference bonus + frequency weight) that respects the owner's time budget
+- Displays the plan with per-task reasoning (score breakdown, time slots, skipped tasks)
+- Marks tasks complete; recurring tasks automatically add the next occurrence back to the pet's list
+- Shows all tasks sorted by start time
+- Filters tasks by pet and completion status
+- Detects scheduling conflicts (tasks sharing the same start time)
+- Includes a full pytest suite covering all major behaviors and edge cases
 
-## Getting started
+## Architecture
 
-### Setup
+| File | Role |
+|---|---|
+| `pawpal_system.py` | Backend: `Owner`, `Pet`, `Task`, `Scheduler` classes |
+| `app.py` | Streamlit frontend: UI, session state, schedule display |
+| `test_pawpal.py` | pytest unit tests for all backend behaviors |
+| `main.py` | Manual integration test — runs end-to-end with hardcoded data |
+
+## Setup
 
 ```bash
 python -m venv .venv
@@ -32,12 +44,15 @@ source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### Suggested workflow
+## Running
 
-1. Read the scenario carefully and identify requirements and edge cases.
-2. Draft a UML diagram (classes, attributes, methods, relationships).
-3. Convert UML into Python class stubs (no logic yet).
-4. Implement scheduling logic in small increments.
-5. Add tests to verify key behaviors.
-6. Connect your logic to the Streamlit UI in `app.py`.
-7. Refine UML so it matches what you actually built.
+```bash
+# Run tests
+pytest
+
+# Run integration test
+python main.py
+
+# Run the app
+streamlit run app.py
+```
