@@ -89,18 +89,29 @@ class DocuBot:
         - Count how many appear in the text
         - Return the count as the score
         """
+        stopwords = {
+            "a", "an", "the", "is", "are", "was", "were", "be", "been",
+            "do", "does", "did", "for", "in", "of", "to", "on", "at",
+            "by", "with", "this", "that", "it", "its", "i", "my", "we",
+            "our", "any", "there", "how", "what", "which", "where", "or",
+            "and", "not", "no", "if", "from", "as", "about",
+        }
         text_lower = text.lower()
         score = 0
         for token in query.split():
             word = token.strip(".,!?;:").lower()
-            if word:
+            if word and word not in stopwords:
                 score += text_lower.count(word)
         return score
 
     def retrieve(self, query, top_k=3):
         """
-        TODO (Phase 1):
         Use the index and scoring function to select top_k relevant document snippets.
+
+        Splits each candidate document into paragraphs and scores each paragraph
+        independently, so only the relevant portion is returned rather than the
+        full document. Applies a minimum score guardrail to avoid returning
+        low-confidence results.
 
         Return a list of (filename, text) sorted by score descending.
         """
@@ -114,11 +125,17 @@ class DocuBot:
 
         scored = []
         for filename in candidates:
-            text = doc_map[filename]
-            score = self.score_document(query, text)
-            scored.append((score, filename, text))
+            paragraphs = [p.strip() for p in doc_map[filename].split("\n\n") if p.strip()]
+            for paragraph in paragraphs:
+                score = self.score_document(query, paragraph)
+                scored.append((score, filename, paragraph))
 
         scored.sort(key=lambda x: x[0], reverse=True)
+
+        # Guardrail: return nothing if the best match has zero overlap with the query
+        if not scored or scored[0][0] == 0:
+            return []
+
         results = [(filename, text) for _, filename, text in scored]
         return results[:top_k]
 
