@@ -9,7 +9,6 @@ Core DocuBot class responsible for:
 
 import os
 import glob
-import re
 
 class DocuBot:
     def __init__(self, docs_folder="docs", llm_client=None):
@@ -49,25 +48,43 @@ class DocuBot:
     # Index Construction (Phase 1)
     # -----------------------------------------------------------
 
+    def _normalize(self, word):
+        """
+        Normalize a single word by stripping a trailing 's' from words longer
+        than 3 characters.
+
+        This provides basic handling of plurals and present-tense verb forms so
+        that query words and document words meet in the same canonical form:
+            columns  -> column
+            tables   -> table
+            returns  -> return
+
+        Words of 3 characters or fewer are left unchanged to avoid mangling
+        short words like 'has' or 'was'.
+        """
+        if len(word) > 3 and word.endswith("s"):
+            return word[:-1]
+        return word
+
     def build_index(self, documents):
         """
-        TODO (Phase 1):
-        Build a tiny inverted index mapping lowercase words to the documents
-        they appear in.
+        Build an inverted index mapping normalized, lowercase words to the
+        documents they appear in.
+
+        Each token is stripped of surrounding punctuation, lowercased, and
+        passed through _normalize before being stored. This ensures the index
+        keys use the same form as the query tokens looked up in retrieve().
 
         Example structure:
         {
             "token": ["AUTH.md", "API_REFERENCE.md"],
             "database": ["DATABASE.md"]
         }
-
-        Keep this simple: split on whitespace, lowercase tokens,
-        ignore punctuation if needed.
         """
         index = {}
         for filename, text in documents:
             for token in text.split():
-                word = token.strip(".,!?;:").lower()
+                word = self._normalize(token.strip(".,!?;:").lower())
                 if not word:
                     continue
                 if word not in index:
@@ -82,13 +99,18 @@ class DocuBot:
 
     def score_document(self, query, text):
         """
-        TODO (Phase 1):
-        Return a simple relevance score for how well the text matches the query.
+        Return a numeric relevance score for how well text matches the query.
 
-        Suggested baseline:
-        - Convert query into lowercase words
-        - Count how many appear in the text
-        - Return the count as the score
+        Approach:
+        - Tokenize and normalize both the query and the text the same way
+          (strip punctuation, lowercase, apply _normalize).
+        - Filter stopwords from the query so common words like 'the', 'is',
+          and 'for' do not inflate scores for unrelated documents.
+        - Count how many times each meaningful query word appears in the
+          normalized text word list and sum the counts.
+
+        A score of 0 means no meaningful query words were found in the text.
+        Higher scores indicate more overlap.
         """
         stopwords = {
             "a", "an", "the", "is", "are", "was", "were", "be", "been",
@@ -97,28 +119,38 @@ class DocuBot:
             "our", "any", "there", "how", "what", "which", "where", "or",
             "and", "not", "no", "if", "from", "as", "about", 
         }
-        text_lower = text.lower()
+        text_words = [
+            self._normalize(t.strip(".,!?;:").lower())
+            for t in text.split()
+            if t.strip(".,!?;:")
+        ]
         score = 0
         for token in query.split():
-            word = token.strip(".,!?;:").lower()
+            word = self._normalize(token.strip(".,!?;:").lower())
             if word and word not in stopwords:
-                score += len(re.findall(r"\b" + re.escape(word) + r"\b", text_lower))
+                score += text_words.count(word)
         return score
 
     def retrieve(self, query, top_k=3):
         """
-        Use the index and scoring function to select top_k relevant document snippets.
+        Return the top_k most relevant paragraphs for the given query.
 
-        Splits each candidate document into paragraphs and scores each paragraph
-        independently, so only the relevant portion is returned rather than the
-        full document. Applies a minimum score guardrail to avoid returning
-        low-confidence results.
+        Steps:
+        1. Normalize query tokens and look each one up in the inverted index to
+           collect candidate filenames (documents that contain at least one
+           query word).
+        2. Split each candidate document into paragraphs on blank lines so that
+           scoring operates on small, focused chunks rather than whole files.
+        3. Score every paragraph with score_document and sort descending.
+        4. Guardrail: if the highest score is 0 (no meaningful query words
+           matched anything), return an empty list so the caller can respond
+           with a refusal instead of returning irrelevant content.
 
-        Return a list of (filename, text) sorted by score descending.
+        Returns a list of (filename, paragraph_text) tuples.
         """
         candidates = set()
         for token in query.split():
-            word = token.strip(".,!?;:").lower()
+            word = self._normalize(token.strip(".,!?;:").lower())
             if word in self.index:
                 candidates.update(self.index[word])
 
