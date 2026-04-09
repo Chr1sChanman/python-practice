@@ -9,6 +9,7 @@ Core DocuBot class responsible for:
 
 import os
 import glob
+import re
 
 class DocuBot:
     def __init__(self, docs_folder="docs", llm_client=None):
@@ -94,14 +95,14 @@ class DocuBot:
             "do", "does", "did", "for", "in", "of", "to", "on", "at",
             "by", "with", "this", "that", "it", "its", "i", "my", "we",
             "our", "any", "there", "how", "what", "which", "where", "or",
-            "and", "not", "no", "if", "from", "as", "about",
+            "and", "not", "no", "if", "from", "as", "about", 
         }
         text_lower = text.lower()
         score = 0
         for token in query.split():
             word = token.strip(".,!?;:").lower()
             if word and word not in stopwords:
-                score += text_lower.count(word)
+                score += len(re.findall(r"\b" + re.escape(word) + r"\b", text_lower))
         return score
 
     def retrieve(self, query, top_k=3):
