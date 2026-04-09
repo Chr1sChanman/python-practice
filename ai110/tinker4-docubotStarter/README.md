@@ -7,7 +7,7 @@ It can operate in three different modes:
    Sends the entire documentation corpus to a Gemini model and asks it to answer the question.
 
 2. **Retrieval only mode**  
-   Uses a simple indexing and scoring system to retrieve relevant snippets without calling an LLM.
+   Uses an inverted index with word-overlap scoring to retrieve the most relevant paragraph-level snippets. Includes stopword filtering, basic word normalization, and a score guardrail that refuses to answer when no relevant content is found.
 
 3. **RAG mode (Retrieval Augmented Generation)**  
    Retrieves relevant snippets, then asks Gemini to answer using only those snippets.
@@ -24,11 +24,7 @@ The docs folder contains realistic developer documents (API reference, authentic
 
 ### 2. Configure environment variables
 
-Copy the example file:
-
-    cp .env.example .env
-
-Then edit `.env` to include your Gemini API key:
+Create a `.env` file in the project root and add your Gemini API key:
 
     GEMINI_API_KEY=your_api_key_here
 
