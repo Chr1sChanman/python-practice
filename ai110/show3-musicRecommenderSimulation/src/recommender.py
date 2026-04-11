@@ -179,7 +179,7 @@ def score_songs(user: UserProfile, songs: List[Song]) -> List[Tuple[Song, float,
         scored.append((song, score, explanation))
     return scored
 
-def recommend_songs(user: Dict, songs: List[Dict], k: int = 5) -> List[Tuple[Dict, float, str]]:
+def recommend_songs(user: UserProfile, songs: List[Dict], k: int = 5) -> List[Tuple[Dict, float, str]]:
     """
     Functional implementation of the recommendation logic.
     Required by src/main.py
