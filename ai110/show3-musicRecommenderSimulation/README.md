@@ -11,8 +11,15 @@ Your goal is to:
 - Evaluate what your system gets right and wrong
 - Reflect on how this mirrors real world AI recommenders
 
-Replace this paragraph with your own summary of what your version does.
+From what I've learned from LLMs, there are two types of real-world recommendations, "indirect" methods like collaborative where it associates you with the behavior of similar users and recommends what they are interested in and is great for discovery, and "direct" methods like content-based filtering that uses item features such as audio, video, metadat, and your personal preference profile/input to recommend items similar, which benefits personalization. My version given the lack of users will likely recommend content-based filtering as it just relies on the user itself to find similar/relevant content.
 
+As for the specific features the objects use:
+- `Song`: id, title, artist, genre, mood, energy, tempo_bpm, valence, danceability, acousticness
+- `UserProfile`: favorite_genre, favorite_mood, target_energy, likes_acoustic
+
+However, the objects can be improved with the following to make the recommendation system better:
+- `Song`: language, release_year, popularity, duration_sec
+- `UserProfile`: liked_song_ids, disliked_song_ids, preferred_genres (weighted), preferred_moods (weighted), target_tempo_range, target_danceability, target_valence
 ---
 
 ## How The System Works
@@ -36,19 +43,18 @@ You can include a simple diagram or bullet list if helpful.
 ### Setup
 
 1. Create a virtual environment (optional but recommended):
-
-   ```bash
+  ```bash
    python -m venv .venv
    source .venv/bin/activate      # Mac or Linux
    .venv\Scripts\activate         # Windows
-
+  ```
 2. Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Run the app:
+1. Run the app:
 
 ```bash
 python -m src.main
@@ -94,13 +100,12 @@ You will go deeper on this in your model card.
 
 Read and complete `model_card.md`:
 
-[**Model Card**](model_card.md)
+**[Model Card](model_card.md)**
 
 Write 1 to 2 paragraphs here about what you learned:
 
 - about how recommenders turn data into predictions
 - about where bias or unfairness could show up in systems like this
-
 
 ---
 
@@ -208,4 +213,6 @@ A few sentences about what you learned:
 - What surprised you about how your system behaved
 - How did building this change how you think about real music recommenders
 - Where do you think human judgment still matters, even if the model seems "smart"
+
+```
 
