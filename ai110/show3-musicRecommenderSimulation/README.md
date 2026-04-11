@@ -14,12 +14,15 @@ Your goal is to:
 From what I've learned from LLMs, there are two types of real-world recommendations, "indirect" methods like collaborative where it associates you with the behavior of similar users and recommends what they are interested in and is great for discovery, and "direct" methods like content-based filtering that uses item features such as audio, video, metadat, and your personal preference profile/input to recommend items similar, which benefits personalization. My version given the lack of users will likely recommend content-based filtering as it just relies on the user itself to find similar/relevant content.
 
 As for the specific features the objects use:
+
 - `Song`: id, title, artist, genre, mood, energy, tempo_bpm, valence, danceability, acousticness
 - `UserProfile`: favorite_genre, favorite_mood, target_energy, likes_acoustic
 
 However, the objects can be improved with the following to make the recommendation system better:
+
 - `Song`: language, release_year, popularity, duration_sec
 - `UserProfile`: liked_song_ids, disliked_song_ids, preferred_genres (weighted), preferred_moods (weighted), target_tempo_range, target_danceability, target_valence
+
 ---
 
 ## How The System Works
@@ -34,7 +37,21 @@ Some prompts to answer:
 - How does your `Recommender` compute a score for each song
 - How do you choose which songs to recommend
 
-You can include a simple diagram or bullet list if helpful.
+The algorithm I have implemented for the user includes additional categories such as `target_valence` and `target_tempo_bpm` to further refine the song weights to the users taste. Before adding the extra parameters like target audio profile and interaction history, just having favorite moods and genres might've overprioritized those latter categories, but until testing I believe I have added additional weights that balance it well that takes into account all listed categories in the csv file.
+
+```mermaid
+flowchart TD
+    A[Input: UserProfile<br/>favorite_genres, favorite_moods,<br/>target_energy/tempo/valence,<br/>liked_song_ids, disliked_song_ids] --> B[Load songs.csv]
+    B --> C{{For each song in catalog}}
+    C --> D[Compute score<br/>audio similarity + genre/mood match<br/>+ liked-song affinity - disliked penalty]
+    D --> E[Store (song, score, explanation)]
+    E --> C
+    C --> F[Sort all songs by score DESC]
+    F --> G[Select Top K]
+    G --> H[Output: Ranked recommendations]
+```
+
+
 
 ---
 
