@@ -51,8 +51,6 @@ flowchart TD
     G --> H[Output: Ranked recommendations]
 ```
 
-
-
 ---
 
 ## Getting Started
@@ -96,6 +94,8 @@ Use this section to document the experiments you ran. For example:
 - What happened when you changed the weight on genre from 2.0 to 0.5
 - What happened when you added tempo or valence to the score
 - How did your system behave for different types of users
+
+![Recommendation Output](evidence/phase3-4.png)
 
 ---
 
@@ -232,4 +232,3 @@ A few sentences about what you learned:
 - Where do you think human judgment still matters, even if the model seems "smart"
 
 ```
-
