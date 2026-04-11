@@ -35,6 +35,15 @@ class UserProfile:
     target_danceability: float | None = None
     target_acousticness: float | None = None
 
+    # Interaction history
+    liked_song_ids: list[int] = field(default_factory=list)
+    disliked_song_ids: list[int] = field(default_factory=list)
+
+    # Optional ranking ctrls
+    artist_affinity: dict[str, float] = field(default_factory=dict)   # {"LoRoom": 0.6}
+    novelty_preference: float = 0.25   # 0=very safe, 1=very exploratory
+    diversity_preference: float = 0.20 # penalize too-similar top-k
+
 class Recommender:
     """
     OOP implementation of the recommendation logic.
