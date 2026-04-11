@@ -63,8 +63,18 @@ class Recommender:
 
 def load_songs(csv_path: str) -> List[Dict]:
     """
-    Loads songs from a CSV file.
-    Required by src/main.py
+    Load and validate song rows from a CSV file.
+
+    Args:
+        csv_path: Relative or absolute path to the songs CSV.
+
+    Returns:
+        A list of song dictionaries with normalized value types:
+        `id` as int, audio features as float, and text fields stripped.
+
+    Raises:
+        ValueError: If a required field is missing or a value cannot be cast
+        to the expected type.
     """
     songs: List[Dict] = []
 
@@ -93,12 +103,34 @@ def load_songs(csv_path: str) -> List[Dict]:
     return songs
 
 def _sim_01(a: float, b: float) -> float:
+    """
+    Compute bounded similarity for two values already on a 0-1 scale.
+
+    Args:
+        a: First normalized value.
+        b: Second normalized value.
+
+    Returns:
+        Similarity in [0.0, 1.0], where 1.0 is identical and 0.0 is maximally
+        distant under absolute-difference distance.
+    """
     return max(0.0, 1.0 - abs(a - b))
 
 def score_song(user: UserProfile, song: Song) -> Tuple[float, str]:
     """
-    Scores a single song against user preferences.
-    Required by recommend_songs() and src/main.py
+    Score one song against the user's taste profile.
+
+    The score combines weighted genre/mood preferences, audio-feature
+    similarity, interaction history boosts/penalties, and artist affinity.
+
+    Args:
+        user: Profile containing weighted preferences and optional targets.
+        song: Candidate song to evaluate.
+
+    Returns:
+        A tuple of:
+        - final numeric score (higher is better)
+        - short explanation string with top scoring reasons
     """
     score = 0.0
     reasons: List[str] = []
@@ -127,7 +159,7 @@ def score_song(user: UserProfile, song: Song) -> Tuple[float, str]:
         score += pts
         reasons.append(f"+{pts:.2f} mood:{song.mood}")
 
-    # 2) Target audio profile similarity
+    # Target audio profile similarity.
     energy_sim = _sim_01(song.energy, user.target_energy)
     pts = W_ENERGY * energy_sim
     score += pts
@@ -154,7 +186,7 @@ def score_song(user: UserProfile, song: Song) -> Tuple[float, str]:
         score += pts
         reasons.append(f"+{pts:.2f} acousticness similarity")
 
-    # 3) Interaction history
+    # Interaction history.
     if song.id in user.liked_song_ids:
         score += W_LIKED
         reasons.append(f"+{W_LIKED:.2f} previously liked")
@@ -162,7 +194,7 @@ def score_song(user: UserProfile, song: Song) -> Tuple[float, str]:
         score += W_DISLIKED
         reasons.append(f"{W_DISLIKED:.2f} previously disliked")
 
-    # 4) Artist affinity
+    # Artist affinity.
     artist_pref = user.artist_affinity.get(song.artist, 0.0)
     if artist_pref > 0:
         pts = W_ARTIST * artist_pref
@@ -173,6 +205,16 @@ def score_song(user: UserProfile, song: Song) -> Tuple[float, str]:
     return score, explanation
 
 def score_songs(user: UserProfile, songs: List[Song]) -> List[Tuple[Song, float, str]]:
+    """
+    Score every song candidate for a given user profile.
+
+    Args:
+        user: Profile used for scoring.
+        songs: List of Song objects to evaluate.
+
+    Returns:
+        List of `(song, score, explanation)` tuples in input order.
+    """
     scored: List[Tuple[Song, float, str]] = []
     for song in songs:
         score, explanation = score_song(user, song)
@@ -181,8 +223,16 @@ def score_songs(user: UserProfile, songs: List[Song]) -> List[Tuple[Song, float,
 
 def recommend_songs(user: UserProfile, songs: List[Dict], k: int = 5) -> List[Tuple[Dict, float, str]]:
     """
-    Functional implementation of the recommendation logic.
-    Required by src/main.py
+    Return top-k recommendations as ranked song dictionaries.
+
+    Args:
+        user: User profile used for scoring.
+        songs: Raw song dictionaries (typically from `load_songs`).
+        k: Number of top recommendations to return.
+
+    Returns:
+        Ranked list of `(song_dict, score, explanation)` tuples sorted by
+        score descending.
     """
     song_objs = [Song(**s) for s in songs]
     scored = score_songs(user, song_objs)
@@ -207,4 +257,3 @@ def recommend_songs(user: UserProfile, songs: List[Dict], k: int = 5) -> List[Tu
         )
         for s, score, explanation in ranked
     ]
-

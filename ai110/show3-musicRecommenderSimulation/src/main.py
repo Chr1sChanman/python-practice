@@ -12,6 +12,12 @@ You will implement the functions in recommender.py:
 from .recommender import load_songs, recommend_songs, UserProfile
 
 def main() -> None:
+    """
+    Run a demo recommendation pass for a default pop/happy profile.
+
+    Loads the CSV catalog, builds a sample `UserProfile`, prints top-k ranked
+    recommendations, and includes each recommendation's score explanation.
+    """
     songs = load_songs("data/songs.csv")
 
     user = UserProfile(
