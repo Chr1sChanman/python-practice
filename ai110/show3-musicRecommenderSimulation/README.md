@@ -95,7 +95,12 @@ Use this section to document the experiments you ran. For example:
 - What happened when you added tempo or valence to the score
 - How did your system behave for different types of users
 
+**Phase 3.4 - CLI Verification**
 ![Recommendation Output](evidence/phase3-4.png)
+**Phase 4.1 - User profile recommendation output**
+![User profile recommendations](evidence/phase4-1_1.png)
+**Phase 4.1 - Test cases w/two edge case profiles**
+![Edge case profiles](evidence/phase4-1_2.png)
 
 ---
 
