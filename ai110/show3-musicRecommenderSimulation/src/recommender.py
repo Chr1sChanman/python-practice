@@ -136,9 +136,9 @@ def score_song(user: UserProfile, song: Song) -> Tuple[float, str]:
     reasons: List[str] = []
 
     # Weights
-    W_GENRE = 2.5
+    W_GENRE = 1.25
     W_MOOD = 2.0
-    W_ENERGY = 2.0
+    W_ENERGY = 4.0
     W_TEMPO = 1.2
     W_VALENCE = 1.0
     W_DANCE = 1.0
