@@ -1,4 +1,12 @@
-from src.recommender import Song, UserProfile, Recommender, score_song, score_songs
+from src.recommender import (
+    Song,
+    UserProfile,
+    Recommender,
+    load_songs,
+    recommend_songs,
+    score_song,
+    score_songs,
+)
 
 def make_small_recommender() -> Recommender:
     songs = [
@@ -104,3 +112,68 @@ def test_score_songs_returns_tuple_per_input_song():
     assert len(scored) == len(songs)
     assert all(len(item) == 3 for item in scored)
     assert all(isinstance(item[1], float) for item in scored)
+
+
+def test_edge_profile_weight_inflation_can_override_audio_mismatch():
+    songs = load_songs("data/songs.csv")
+    edge_user = UserProfile(
+        favorite_genres={"pop": 100.0, "indie pop": 80.0},
+        favorite_moods={"happy": 100.0},
+        target_energy=0.10,
+        target_tempo_bpm=60,
+        target_valence=0.10,
+        target_danceability=0.10,
+        target_acousticness=0.95,
+        liked_song_ids=[],
+        disliked_song_ids=[],
+        artist_affinity={},
+        novelty_preference=0.0,
+        diversity_preference=0.0,
+    )
+
+    ranked = recommend_songs(edge_user, songs, k=3)
+    top_song = ranked[0][0]
+
+    # With inflated preference weights, pop/happy should still dominate even
+    # when audio targets are intentionally opposite.
+    assert top_song["genre"] == "pop"
+    assert top_song["mood"] == "happy"
+
+
+def test_edge_profile_conflicting_like_dislike_has_net_negative_effect():
+    song = make_small_recommender().songs[0]
+    baseline_user = UserProfile(
+        favorite_genres={"pop": 1.0},
+        favorite_moods={"happy": 1.0},
+        target_energy=0.8,
+        target_tempo_bpm=120,
+        target_valence=0.8,
+        target_danceability=0.8,
+        target_acousticness=0.2,
+        liked_song_ids=[],
+        disliked_song_ids=[],
+        artist_affinity={"Test Artist": 0.5},
+        novelty_preference=0.5,
+        diversity_preference=0.5,
+    )
+
+    conflict_user = UserProfile(
+        favorite_genres={"pop": 1.0},
+        favorite_moods={"happy": 1.0},
+        target_energy=0.8,
+        target_tempo_bpm=120,
+        target_valence=0.8,
+        target_danceability=0.8,
+        target_acousticness=0.2,
+        liked_song_ids=[song.id],
+        disliked_song_ids=[song.id],
+        artist_affinity={"Test Artist": 0.5},
+        novelty_preference=0.5,
+        diversity_preference=0.5,
+    )
+
+    baseline_score, _ = score_song(baseline_user, song)
+    conflict_score, _ = score_song(conflict_user, song)
+
+    # Current logic applies both adjustments (+3 and -4), yielding net -1.
+    assert conflict_score == baseline_score - 1.0
