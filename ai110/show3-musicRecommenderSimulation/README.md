@@ -101,6 +101,8 @@ Use this section to document the experiments you ran. For example:
 ![User profile recommendations](evidence/phase4-1_1.png)
 **Phase 4.1 - Test cases w/two edge case profiles**
 ![Edge case profiles](evidence/phase4-1_2.png)
+**Phase 4.3 - Small weight experience**
+When doubling importance of energy and halving the importance of genre, very little changes in recommendation with only two showing slight variations in order and only one replacing one song. I would say that it positively affected the recommendations due to one of the two it changed becoming more in line with the profile preference.
 
 ---
 
@@ -114,7 +116,7 @@ Examples:
 - It does not understand lyrics or language
 - It might over favor one genre or mood
 
-You will go deeper on this in your model card.
+My recommender still has clear limits: the catalog is small (20 songs), so it can miss tastes that are not represented in the data. It also relies on weighted numeric/audio features and does not understand lyrics, cultural context, or deeper emotional meaning in music. Another risk is that very large user preference weights can overpower other signals and produce rankings that are technically correct by formula but less intuitive by listening experience.
 
 ---
 
@@ -128,6 +130,10 @@ Write 1 to 2 paragraphs here about what you learned:
 
 - about how recommenders turn data into predictions
 - about where bias or unfairness could show up in systems like this
+
+Building this project helped me understand that recommenders are mostly about translating user and item features into scoring rules, then ranking by those scores. Even a simple content-based system can produce useful results if the profile fields are clear and the feature values are reasonably aligned with the songs.
+
+I also learned that bias can show up through both data and design choices. If the dataset is limited, some genres or moods are naturally underrepresented, and if weights are unbalanced, the model can over-prioritize one signal and hide others. So the system can be consistent in code but still unfair or less useful for some user tastes.
 
 ---
 
