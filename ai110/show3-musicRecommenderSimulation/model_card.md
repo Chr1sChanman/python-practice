@@ -49,6 +49,7 @@ Prompts:
 - Are there parts of musical taste missing in the dataset
 
 Currently there are 20 songs in the `.csv` file, with diverse genres/moods including pop, lofi, rock, ambient, jazz, synthwave, indie pop, hip hop, reggaeton, metal, classical, drum and bass, country, afrobeat, blues, house, and folk. The numeric values generally align with genre expectations (for example, drum and bass/metal higher BPM and energy, ambient/folk lower BPM and energy, acoustic-focused songs with high acousticness). Even with this expansion, the dataset is still small and does not capture full real-world taste diversity.
+
 ---
 
 ## 5. Strengths
@@ -62,6 +63,7 @@ Prompts:
 - Cases where the recommendations matched your intuition
 
 I think this recommender works well for clearly defined vibe profiles (for example high-energy pop, chill lofi, and acoustic relaxed), and the explanation output helps show exactly why songs ranked where they did. Adding extra profile categories beyond the starter version improved control over recommendations and gave better filtering than just genre + mood alone. The current tests also validate normal behavior and key edge scenarios.
+
 ---
 
 ## 6. Limitations and Bias
