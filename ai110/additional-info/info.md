@@ -1,7 +1,12 @@
+**MCP**
 https://www.llamaindex.ai/
 https://www.langchain.com/
 https://platform.claude.com/docs/en/managed-agents/overview
 https://www.docker.com/products/docker-desktop/ (Docker MCP Toolkit)
+https://github.com/NVIDIA/NemoClaw
+**AI Moderation**
+https://aws.amazon.com/bedrock/guardrails/
+https://developers.openai.com/api/docs/guides/moderation
 
 ---
 
