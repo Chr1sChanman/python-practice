@@ -1,0 +1,12 @@
+{
+  "w_genre": 1.25,
+  "w_mood": 2.5,
+  "w_energy": 4.0,
+  "w_tempo": 0.19999999999999996,
+  "w_valence": 1.0,
+  "w_dance": 0.0,
+  "w_acoustic": 0.0,
+  "w_artist": 2.5,
+  "w_liked": 2.0,
+  "w_disliked": -4.5
+}
