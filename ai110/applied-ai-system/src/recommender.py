@@ -2,6 +2,8 @@ from typing import List, Dict, Tuple, Optional
 from dataclasses import dataclass, field
 import csv
 
+from src.config import ScoringConfig
+
 @dataclass
 class Song:
     """
@@ -116,7 +118,11 @@ def _sim_01(a: float, b: float) -> float:
     """
     return max(0.0, 1.0 - abs(a - b))
 
-def score_song(user: UserProfile, song: Song) -> Tuple[float, str]:
+def score_song(
+    user: UserProfile,
+    song: Song,
+    config: Optional[ScoringConfig] = None,
+) -> Tuple[float, str]:
     """
     Score one song against the user's taste profile.
 
@@ -126,102 +132,104 @@ def score_song(user: UserProfile, song: Song) -> Tuple[float, str]:
     Args:
         user: Profile containing weighted preferences and optional targets.
         song: Candidate song to evaluate.
+        config: Scoring weights. Defaults to ScoringConfig() if not provided.
 
     Returns:
         A tuple of:
         - final numeric score (higher is better)
         - short explanation string with top scoring reasons
     """
+    if config is None:
+        config = ScoringConfig()
+
     score = 0.0
     reasons: List[str] = []
 
-    # Weights
-    W_GENRE = 1.25
-    W_MOOD = 2.0
-    W_ENERGY = 4.0
-    W_TEMPO = 1.2
-    W_VALENCE = 1.0
-    W_DANCE = 1.0
-    W_ACOUSTIC = 1.0
-    W_ARTIST = 1.0
-    W_LIKED = 3.0
-    W_DISLIKED = -4.0
-
     genre_pref = user.favorite_genres.get(song.genre, 0.0)
     if genre_pref > 0:
-        pts = W_GENRE * genre_pref
+        pts = config.w_genre * genre_pref
         score += pts
         reasons.append(f"+{pts:.2f} genre:{song.genre}")
 
     mood_pref = user.favorite_moods.get(song.mood, 0.0)
     if mood_pref > 0:
-        pts = W_MOOD * mood_pref
+        pts = config.w_mood * mood_pref
         score += pts
         reasons.append(f"+{pts:.2f} mood:{song.mood}")
 
     # Target audio profile similarity.
     energy_sim = _sim_01(song.energy, user.target_energy)
-    pts = W_ENERGY * energy_sim
+    pts = config.w_energy * energy_sim
     score += pts
     reasons.append(f"+{pts:.2f} energy similarity")
 
     if user.target_tempo_bpm is not None:
         tempo_sim = max(0.0, 1.0 - abs(song.tempo_bpm - user.target_tempo_bpm) / 90.0)
-        pts = W_TEMPO * tempo_sim
+        pts = config.w_tempo * tempo_sim
         score += pts
         reasons.append(f"+{pts:.2f} tempo similarity")
 
     if user.target_valence is not None:
-        pts = W_VALENCE * _sim_01(song.valence, user.target_valence)
+        pts = config.w_valence * _sim_01(song.valence, user.target_valence)
         score += pts
         reasons.append(f"+{pts:.2f} valence similarity")
 
     if user.target_danceability is not None:
-        pts = W_DANCE * _sim_01(song.danceability, user.target_danceability)
+        pts = config.w_dance * _sim_01(song.danceability, user.target_danceability)
         score += pts
         reasons.append(f"+{pts:.2f} danceability similarity")
 
     if user.target_acousticness is not None:
-        pts = W_ACOUSTIC * _sim_01(song.acousticness, user.target_acousticness)
+        pts = config.w_acoustic * _sim_01(song.acousticness, user.target_acousticness)
         score += pts
         reasons.append(f"+{pts:.2f} acousticness similarity")
 
     # Interaction history.
     if song.id in user.liked_song_ids:
-        score += W_LIKED
-        reasons.append(f"+{W_LIKED:.2f} previously liked")
+        score += config.w_liked
+        reasons.append(f"+{config.w_liked:.2f} previously liked")
     if song.id in user.disliked_song_ids:
-        score += W_DISLIKED
-        reasons.append(f"{W_DISLIKED:.2f} previously disliked")
+        score += config.w_disliked
+        reasons.append(f"{config.w_disliked:.2f} previously disliked")
 
     # Artist affinity.
     artist_pref = user.artist_affinity.get(song.artist, 0.0)
     if artist_pref > 0:
-        pts = W_ARTIST * artist_pref
+        pts = config.w_artist * artist_pref
         score += pts
         reasons.append(f"+{pts:.2f} artist:{song.artist}")
 
     explanation = "; ".join(reasons[:4]) if reasons else "No strong preference match"
     return score, explanation
 
-def score_songs(user: UserProfile, songs: List[Song]) -> List[Tuple[Song, float, str]]:
+def score_songs(
+    user: UserProfile,
+    songs: List[Song],
+    config: Optional[ScoringConfig] = None,
+) -> List[Tuple[Song, float, str]]:
     """
     Score every song candidate for a given user profile.
 
     Args:
         user: Profile used for scoring.
         songs: List of Song objects to evaluate.
+        config: Scoring weights. Defaults to ScoringConfig() if not provided.
 
     Returns:
         List of `(song, score, explanation)` tuples in input order.
     """
     scored: List[Tuple[Song, float, str]] = []
     for song in songs:
-        score, explanation = score_song(user, song)
+        score, explanation = score_song(user, song, config)
         scored.append((song, score, explanation))
     return scored
 
-def recommend_songs(user: UserProfile, songs: List[Dict], k: int = 5) -> List[Tuple[Dict, float, str]]:
+def recommend_songs(
+    user: UserProfile,
+    songs: List[Dict],
+    k: int = 5,
+    config: Optional[ScoringConfig] = None,
+) -> List[Tuple[Dict, float, str]]:
     """
     Return top-k recommendations as ranked song dictionaries.
 
@@ -229,13 +237,14 @@ def recommend_songs(user: UserProfile, songs: List[Dict], k: int = 5) -> List[Tu
         user: User profile used for scoring.
         songs: Raw song dictionaries (typically from `load_songs`).
         k: Number of top recommendations to return.
+        config: Scoring weights. Defaults to ScoringConfig() if not provided.
 
     Returns:
         Ranked list of `(song_dict, score, explanation)` tuples sorted by
         score descending.
     """
     song_objs = [Song(**s) for s in songs]
-    scored = score_songs(user, song_objs)
+    scored = score_songs(user, song_objs, config)
     ranked = sorted(scored, key=lambda x: x[1], reverse=True)[:k]
 
     return [
