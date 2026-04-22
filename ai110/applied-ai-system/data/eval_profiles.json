@@ -1,0 +1,108 @@
+{
+  "labeling_rubric": "relevance=2 when the song's genre AND mood are both in the profile's preferred lists (or the energy/mood match is unambiguously strong). relevance=1 when only one of {genre, mood} matches. Omitted song ids are treated as relevance=0.",
+  "profiles": [
+    {
+      "name": "High-Energy Pop",
+      "profile": {
+        "favorite_genres": {"pop": 1.0, "indie pop": 0.7, "house": 0.5},
+        "favorite_moods": {"happy": 1.0, "festive": 0.7},
+        "target_energy": 0.86,
+        "target_tempo_bpm": 126,
+        "target_valence": 0.82,
+        "target_danceability": 0.88,
+        "target_acousticness": 0.15
+      },
+      "relevance": {
+        "1": 2,
+        "10": 2,
+        "12": 2,
+        "17": 2,
+        "5": 1,
+        "19": 1,
+        "15": 1
+      }
+    },
+    {
+      "name": "Chill Lofi",
+      "profile": {
+        "favorite_genres": {"lofi": 1.0, "ambient": 0.8, "jazz": 0.4},
+        "favorite_moods": {"chill": 1.0, "focused": 0.8, "relaxed": 0.6},
+        "target_energy": 0.38,
+        "target_tempo_bpm": 76,
+        "target_valence": 0.60,
+        "target_danceability": 0.56,
+        "target_acousticness": 0.82
+      },
+      "relevance": {
+        "2": 2,
+        "4": 2,
+        "9": 2,
+        "6": 2,
+        "7": 2,
+        "14": 1,
+        "18": 1,
+        "20": 1
+      }
+    },
+    {
+      "name": "Deep Intense Rock",
+      "profile": {
+        "favorite_genres": {"rock": 1.0, "metal": 0.8},
+        "favorite_moods": {"intense": 1.0, "aggressive": 0.8, "moody": 0.4},
+        "target_energy": 0.93,
+        "target_tempo_bpm": 154,
+        "target_valence": 0.45,
+        "target_danceability": 0.58,
+        "target_acousticness": 0.08
+      },
+      "relevance": {
+        "3": 2,
+        "13": 2,
+        "5": 1,
+        "8": 1,
+        "15": 1
+      }
+    },
+    {
+      "name": "Acoustic Relaxed",
+      "profile": {
+        "favorite_genres": {"folk": 1.0, "classical": 0.7, "jazz": 0.6},
+        "favorite_moods": {"relaxed": 1.0, "serene": 0.8, "tender": 0.7},
+        "target_energy": 0.32,
+        "target_tempo_bpm": 78,
+        "target_valence": 0.66,
+        "target_danceability": 0.42,
+        "target_acousticness": 0.90
+      },
+      "relevance": {
+        "14": 2,
+        "20": 2,
+        "7": 2,
+        "18": 1,
+        "16": 1,
+        "4": 1,
+        "6": 1,
+        "2": 1
+      }
+    },
+    {
+      "name": "Night Drive Moody",
+      "profile": {
+        "favorite_genres": {"synthwave": 1.0, "house": 0.6, "rock": 0.3},
+        "favorite_moods": {"moody": 1.0, "focused": 0.5, "confident": 0.4},
+        "target_energy": 0.74,
+        "target_tempo_bpm": 112,
+        "target_valence": 0.50,
+        "target_danceability": 0.74,
+        "target_acousticness": 0.20
+      },
+      "relevance": {
+        "8": 2,
+        "19": 2,
+        "11": 1,
+        "3": 1,
+        "9": 1
+      }
+    }
+  ]
+}
