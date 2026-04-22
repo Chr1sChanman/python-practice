@@ -13,3 +13,6 @@ venv/
 
 # Pytest cache
 .pytest_cache/
+
+# Runtime logs (Phase 2+)
+logs/
