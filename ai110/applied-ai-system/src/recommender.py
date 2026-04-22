@@ -1,8 +1,13 @@
 from typing import List, Dict, Tuple, Optional
 from dataclasses import dataclass, field
 import csv
+import hashlib
+import json
+import time
+import warnings
 
 from src.config import ScoringConfig
+from src.logging_utils import get_logger, log_event
 
 @dataclass
 class Song:
@@ -46,6 +51,70 @@ class UserProfile:
     artist_affinity: dict[str, float] = field(default_factory=dict)   # {"LoRoom": 0.6}
     novelty_preference: float = 0.25   # 0=very safe, 1=very exploratory
     diversity_preference: float = 0.20 # penalize too-similar top-k
+
+    def validate(self) -> List[str]:
+        """
+        Validate the profile against runtime invariants.
+
+        Behaviour split:
+        - Hard violations raise ``ValueError`` (out-of-range numbers, negative
+          weights). The system cannot reasonably interpret these.
+        - Soft contradictions (e.g. same id liked AND disliked) emit a
+          ``UserWarning`` and are returned in the warnings list, so callers
+          (and logs) can surface them without halting.
+
+        Returns:
+            List of warning messages (empty if profile is clean).
+        """
+        warns: List[str] = []
+
+        # 0-1 bounded fields
+        bounded_01 = {
+            "target_energy": self.target_energy,
+            "target_valence": self.target_valence,
+            "target_danceability": self.target_danceability,
+            "target_acousticness": self.target_acousticness,
+            "novelty_preference": self.novelty_preference,
+            "diversity_preference": self.diversity_preference,
+        }
+        for name, value in bounded_01.items():
+            if value is None:
+                continue
+            if not (0.0 <= value <= 1.0):
+                raise ValueError(
+                    f"{name}={value!r} out of range; expected float in [0.0, 1.0]"
+                )
+
+        # tempo: positive BPM or None
+        if self.target_tempo_bpm is not None and self.target_tempo_bpm <= 0:
+            raise ValueError(
+                f"target_tempo_bpm={self.target_tempo_bpm!r} must be > 0"
+            )
+
+        # weights in preference dicts must be non-negative
+        for dict_name, d in (
+            ("favorite_genres", self.favorite_genres),
+            ("favorite_moods", self.favorite_moods),
+            ("artist_affinity", self.artist_affinity),
+        ):
+            for key, weight in d.items():
+                if weight < 0:
+                    raise ValueError(
+                        f"{dict_name}[{key!r}]={weight!r} must be >= 0"
+                    )
+
+        # soft contradiction: id appears in both liked and disliked
+        overlap = set(self.liked_song_ids) & set(self.disliked_song_ids)
+        if overlap:
+            msg = (
+                f"song id(s) {sorted(overlap)} appear in both liked_song_ids "
+                f"and disliked_song_ids; like/dislike will partially cancel"
+            )
+            warns.append(msg)
+            warnings.warn(msg, UserWarning, stacklevel=2)
+
+        return warns
+
 
 class Recommender:
     """
@@ -224,6 +293,27 @@ def score_songs(
         scored.append((song, score, explanation))
     return scored
 
+def _profile_hash(user: UserProfile) -> str:
+    """Stable short hash of a profile for log correlation."""
+    payload = json.dumps(
+        {
+            "favorite_genres": user.favorite_genres,
+            "favorite_moods": user.favorite_moods,
+            "target_energy": user.target_energy,
+            "target_tempo_bpm": user.target_tempo_bpm,
+            "target_valence": user.target_valence,
+            "target_danceability": user.target_danceability,
+            "target_acousticness": user.target_acousticness,
+            "liked_song_ids": sorted(user.liked_song_ids),
+            "disliked_song_ids": sorted(user.disliked_song_ids),
+            "artist_affinity": user.artist_affinity,
+        },
+        sort_keys=True,
+        default=str,
+    )
+    return hashlib.sha1(payload.encode("utf-8")).hexdigest()[:10]
+
+
 def recommend_songs(
     user: UserProfile,
     songs: List[Dict],
@@ -232,6 +322,10 @@ def recommend_songs(
 ) -> List[Tuple[Dict, float, str]]:
     """
     Return top-k recommendations as ranked song dictionaries.
+
+    Validates ``user`` first (raises on hard violations, warns on soft ones)
+    and emits one structured JSONL log line per call to
+    ``logs/recommender.jsonl`` capturing inputs, top results, and latency.
 
     Args:
         user: User profile used for scoring.
@@ -243,11 +337,28 @@ def recommend_songs(
         Ranked list of `(song_dict, score, explanation)` tuples sorted by
         score descending.
     """
+    logger = get_logger("recommender")
+    profile_hash = _profile_hash(user)
+    started = time.perf_counter()
+
+    try:
+        warns = user.validate()
+    except ValueError as exc:
+        log_event(
+            logger,
+            "recommend_failed",
+            profile_hash=profile_hash,
+            k=k,
+            error=str(exc),
+            error_type=type(exc).__name__,
+        )
+        raise
+
     song_objs = [Song(**s) for s in songs]
     scored = score_songs(user, song_objs, config)
     ranked = sorted(scored, key=lambda x: x[1], reverse=True)[:k]
 
-    return [
+    results = [
         (
             {
                 "id": s.id,
@@ -266,3 +377,17 @@ def recommend_songs(
         )
         for s, score, explanation in ranked
     ]
+
+    latency_ms = (time.perf_counter() - started) * 1000.0
+    log_event(
+        logger,
+        "recommend",
+        profile_hash=profile_hash,
+        k=k,
+        catalog_size=len(songs),
+        top_ids=[song["id"] for song, _, _ in results],
+        top_scores=[round(score, 4) for _, score, _ in results],
+        warnings=warns,
+        latency_ms=round(latency_ms, 3),
+    )
+    return results
