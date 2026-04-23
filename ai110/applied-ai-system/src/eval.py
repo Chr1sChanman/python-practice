@@ -24,10 +24,7 @@ from src.config import ScoringConfig
 from src.recommender import UserProfile, load_songs, recommend_songs
 
 
-# --------------------------------------------------------------------------
 # Pure metric functions
-# --------------------------------------------------------------------------
-
 def dcg_at_k(relevances: List[int], k: int) -> float:
     """
     Discounted Cumulative Gain over a relevance list (already in rank order).
@@ -124,10 +121,7 @@ def genre_entropy(predicted_songs: List[dict]) -> float:
     )
 
 
-# --------------------------------------------------------------------------
 # Evaluation runner
-# --------------------------------------------------------------------------
-
 @dataclass
 class EvalReport:
     """Result of evaluating a config against a labeled profile set."""
@@ -210,10 +204,7 @@ def evaluate(
     return report
 
 
-# --------------------------------------------------------------------------
 # Markdown rendering + CLI
-# --------------------------------------------------------------------------
-
 def report_to_markdown(report: EvalReport, config: ScoringConfig) -> str:
     """Render an EvalReport as a human-readable markdown string."""
     lines: List[str] = []

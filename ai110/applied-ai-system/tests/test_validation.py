@@ -10,8 +10,7 @@ import pytest
 from src.recommender import UserProfile, recommend_songs, load_songs
 
 
-# ---------- Hard violations: must raise ValueError ----------
-
+# Hard violations: must raise ValueError 
 def test_target_energy_out_of_range_raises():
     user = UserProfile(target_energy=1.5)
     with pytest.raises(ValueError, match="target_energy"):
@@ -39,8 +38,7 @@ def test_recommend_songs_propagates_validation_error(tmp_path, monkeypatch):
         recommend_songs(bad_user, songs, k=3)
 
 
-# ---------- Soft contradictions: warn but do not raise ----------
-
+# Soft contradictions: warn but do not raise
 def test_like_dislike_overlap_warns_but_does_not_raise():
     user = UserProfile(liked_song_ids=[3, 7], disliked_song_ids=[7])
     with warnings.catch_warnings(record=True) as caught:
@@ -52,8 +50,7 @@ def test_like_dislike_overlap_warns_but_does_not_raise():
     ), "a UserWarning should have been emitted"
 
 
-# ---------- Logging: every call appends one JSONL line ----------
-
+# Logging: every call appends one JSONL line 
 def test_recommend_songs_writes_jsonl_log(tmp_path, monkeypatch):
     """A successful recommend_songs call appends one valid JSON line to the log."""
     monkeypatch.chdir(tmp_path)

@@ -40,10 +40,7 @@ from src.recommender import (
 )
 
 
-# --------------------------------------------------------------------------
 # Profile catalog (the 5 demo profiles)
-# --------------------------------------------------------------------------
-
 DEMO_PROFILES: dict[str, dict] = {
     "High-Energy Pop": {
         "favorite_genres": {"pop": 1.0, "indie pop": 0.7, "house": 0.5},
@@ -93,10 +90,7 @@ DEMO_PROFILES: dict[str, dict] = {
 }
 
 
-# --------------------------------------------------------------------------
 # Helpers
-# --------------------------------------------------------------------------
-
 def _print_top_k(
     title: str,
     recommendations: List[Tuple[dict, float, str]],
@@ -138,10 +132,7 @@ def _ensure_tuned_config(path: str = "evidence/tuned_config.json") -> ScoringCon
     return final
 
 
-# --------------------------------------------------------------------------
 # Demo mode (also reused by --tune)
-# --------------------------------------------------------------------------
-
 def run_demo(config: Optional[ScoringConfig] = None) -> None:
     songs = load_songs("data/songs.csv")
     label = "tuned" if config is not None else "default"
@@ -152,10 +143,7 @@ def run_demo(config: Optional[ScoringConfig] = None) -> None:
         _print_top_k(name, recs)
 
 
-# --------------------------------------------------------------------------
 # Interactive mode
-# --------------------------------------------------------------------------
-
 def _apply_action(
     profile: UserProfile,
     action,
@@ -321,10 +309,7 @@ def run_interactive(
     return profile
 
 
-# --------------------------------------------------------------------------
 # CLI dispatcher
-# --------------------------------------------------------------------------
-
 def main(argv: Optional[List[str]] = None) -> int:
     parser = argparse.ArgumentParser(description="Music recommender CLI.")
     mode = parser.add_mutually_exclusive_group()

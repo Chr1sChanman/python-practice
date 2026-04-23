@@ -17,8 +17,7 @@ from src.eval import (
 )
 
 
-# ---------- nDCG core behavior ----------
-
+# nDCG core behavior
 def test_ndcg_perfect_ranking_is_one():
     """If we predict the ideal ordering, nDCG must be exactly 1.0."""
     relevance = {1: 2, 2: 2, 3: 1, 4: 0}
@@ -43,8 +42,7 @@ def test_ndcg_no_labels_returns_zero():
     assert ndcg_at_k([1, 2, 3], {1: 0, 2: 0}, k=3) == 0.0
 
 
-# ---------- DCG ----------
-
+# DCG
 def test_dcg_position_discount():
     """A relevance-2 hit at position 1 is worth more than at position 2."""
     pos1 = dcg_at_k([2, 0], k=2)
@@ -54,8 +52,7 @@ def test_dcg_position_discount():
     assert pos2 == pytest.approx(2.0 / math.log2(3))
 
 
-# ---------- Precision / Recall ----------
-
+# Precision / Recall
 def test_precision_respects_threshold():
     relevance = {1: 2, 2: 1, 3: 0}
     # threshold=1: ids 1 and 2 count -> 2/3
@@ -70,8 +67,7 @@ def test_recall_finds_all_relevant():
     assert recall_at_k([1, 2], relevance, k=2, threshold=1) == pytest.approx(2 / 3)
 
 
-# ---------- Coverage / Entropy ----------
-
+# Coverage / Entropy
 def test_coverage_unique_across_profiles():
     # 2 profiles, top-3 each, with overlap; 4 unique songs out of 10 catalog
     assert coverage([[1, 2, 3], [3, 4, 1]], catalog_size=10) == pytest.approx(0.4)
@@ -84,8 +80,7 @@ def test_genre_entropy_uniform_vs_monoculture():
     assert genre_entropy(songs_mono) == 0.0
 
 
-# ---------- evaluate() integration ----------
-
+# evaluate() integration
 def test_evaluate_default_config_returns_metrics():
     """evaluate() runs end-to-end and produces sensible aggregate numbers."""
     report = evaluate(config=ScoringConfig(), k=5)

@@ -16,8 +16,7 @@ from src.agent import WEIGHT_BOUNDS, WeightTuningAgent
 from src.config import ScoringConfig
 
 
-# ---- Bounds invariant ----
-
+# Bounds invariant
 def test_agent_never_produces_out_of_bounds_config(tmp_path):
     """Every after-config the agent emits must respect WEIGHT_BOUNDS."""
     agent = WeightTuningAgent(
@@ -37,8 +36,7 @@ def test_agent_never_produces_out_of_bounds_config(tmp_path):
             )
 
 
-# ---- Improvement on a bad starting config ----
-
+# Improvement on a bad starting config
 def test_agent_improves_zeroed_starting_config(tmp_path):
     """A near-zero config should be improved within the budget."""
     bad = ScoringConfig(
@@ -66,8 +64,7 @@ def test_agent_improves_zeroed_starting_config(tmp_path):
     )
 
 
-# ---- Reproducibility ----
-
+# Reproducibility
 def _run_steps(tmp_path: Path, seed: int, log_name: str) -> list[dict]:
     log_path = tmp_path / log_name
     agent = WeightTuningAgent(seed=seed, log_path=str(log_path))

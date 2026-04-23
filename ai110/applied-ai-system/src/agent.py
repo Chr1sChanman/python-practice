@@ -106,8 +106,7 @@ class WeightTuningAgent:
         self._logger = get_logger(f"agent::{log_path}", log_path=log_path)
         self._seed = seed
 
-    # ---- The four loop primitives ----
-
+    # The four loop primitives: Plan -> Act -> Validate -> Repeat
     def plan(
         self,
         current: ScoringConfig,
@@ -153,8 +152,7 @@ class WeightTuningAgent:
             return True, f"accepted ({tag}): mean_ndcg {before_n:.4f} -> {after_n:.4f}"
         return False, f"rejected: mean_ndcg regressed {before_n:.4f} -> {after_n:.4f}"
 
-    # ---- The driver ----
-
+    # The driver 
     def run(self, budget: int = 20) -> List[Step]:
         """Run up to ``budget`` iterations or stop early via patience."""
         current = self.starting_config
@@ -237,10 +235,7 @@ class WeightTuningAgent:
         return history
 
 
-# --------------------------------------------------------------------------
 # Report rendering + CLI
-# --------------------------------------------------------------------------
-
 def _ascii_chart(values: List[float], width: int = 40) -> str:
     """Render a tiny ASCII bar chart of float values, normalized to [0, width]."""
     if not values:

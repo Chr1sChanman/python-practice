@@ -46,10 +46,7 @@ def _eval_profiles() -> List[Tuple[str, dict]]:
     return [(entry["name"], entry["profile"]) for entry in raw["profiles"]]
 
 
-# ---------------------------------------------------------------------------
 # Collect all profiles once so pytest can parametrize over them.
-# ---------------------------------------------------------------------------
-
 @pytest.mark.parametrize(
     "profile_name,profile_dict",
     _eval_profiles(),

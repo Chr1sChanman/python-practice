@@ -19,8 +19,7 @@ from src.feedback import (
 from src.main import run_interactive
 
 
-# ---- parse_feedback unit cases ----
-
+# parse_feedback unit cases
 def test_parse_like():
     assert parse_feedback("like 3") == LikeSong(song_id=3)
 
@@ -63,8 +62,7 @@ def test_parse_empty():
     assert isinstance(parse_feedback(""), Unknown)
 
 
-# ---- Interactive loop integration ----
-
+# Interactive loop integration
 class _Driver:
     """Records output and feeds prepared input lines to run_interactive."""
 

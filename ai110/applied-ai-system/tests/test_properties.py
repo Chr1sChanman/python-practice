@@ -14,8 +14,7 @@ from src.config import ScoringConfig
 from src.recommender import Song, UserProfile, score_song
 
 
-# ----- Strategies for random-but-valid domain objects -----
-
+# Strategies for random-but-valid domain objects
 GENRES = st.sampled_from(["pop", "lofi", "rock", "jazz", "synthwave", "ambient"])
 MOODS = st.sampled_from(["happy", "chill", "intense", "moody", "relaxed", "focused"])
 
@@ -52,8 +51,7 @@ def profiles(draw):
     )
 
 
-# ----- Invariants -----
-
+# Invariants 
 @given(profile=profiles(), song=songs())
 @settings(deadline=None, max_examples=100)
 def test_determinism_same_inputs_same_output(profile, song):
