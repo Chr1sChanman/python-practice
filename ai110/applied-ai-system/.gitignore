@@ -16,3 +16,7 @@ venv/
 
 # Runtime logs (Phase 2+)
 logs/
+
+# Personal Files
+/.cursor
+/archived
