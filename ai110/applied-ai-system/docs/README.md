@@ -231,7 +231,7 @@ The **golden regression tests** and **property invariants** prevent exactly this
 
 ### What surprised me during testing
 
-The surprise I recall having during testing wasn't really in terms of the system logic, but actually the concepts and implemention itself of this more classic/simple AI for music recommendation. I did not realise how relatively straightforward agents and agentic systems are, and it was really interesting learing all the different libraries utilized by for this project, many of which I will keep in mind when moving forward in my career that I want to path into, which is the focus on scaling and realiabilty of deep learning and agentic systems.
+The surprise I recall having during testing wasn't really when testing the AI's reliability or logic, but actually the concepts and implemention itself of this more classic/simple AI for music recommendation. I did not realise how relatively straightforward agents and agentic systems are, and it was really interesting learing all the different libraries utilized by for this project, many of which I will keep in mind when moving forward in my career that I want to path into, which is the focus on scaling and realiabilty of deep learning and agentic systems.
 
 ### Collaboration with AI during this project
 
