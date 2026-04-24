@@ -197,7 +197,7 @@ The reliability system is based on four factors:
 - **Logging and error handling:** Every `recommend_songs` call produces a JSON line in `logs/recommender.jsonl` with profile hash, top ids, scores, warnings, and latency. The agent also produces matching lines in `logs/agent.jsonl`, where any raised validation error is also logged with `event: "recommend_failed"`.
 - **Human evaluation:** Labeled `data/eval_profiles.json` with the labeling rubric written into the file itself (`relevance=2` when genre AND mood match, `relevance=1` for single-field match), which is what defines "better" for the agent. Additionally reviewed the generated `evidence/eval_latest.md` and `evidence/agent_report.md` after each agent or user-driven run.
 
-**Summary in one line:** 49 of 49 tests pass; confidence (mean_ndcg) averaged 0.9429 on the default config and improved to 0.9786 after agent tuning; the interactive layer caught and logged every malformed input during testing; the AI struggled earliest when context was ambiguous (labeling `Night Drive Moody` subjectively because only one song perfectly matched — see Reflection).
+**Summary in one line:** 49 of 49 tests pass, confidence (mean_ndcg) averaged 0.9429 on the default config and improved to 0.9786 after agent tuning, the interactive layer caught and logged every malformed input during testing, and the AI struggled earliest when context was ambiguous (labeling `Night Drive Moody` subjectively because only one song perfectly matched reflection.md contains a much more in depth explanation).
 
 ---
 
